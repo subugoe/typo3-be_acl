@@ -15,7 +15,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'description' => 'Backend Access Control Lists',
 	'category' => 'be',
 	'shy' => 0,
-	'version' => '1.4.3',
+	'version' => '1.4.5',
 	'dependencies' => '',
 	'conflicts' => '',
 	'priority' => '',
@@ -23,7 +23,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'module' => '',
 	'state' => 'stable',
 	'uploadfolder' => 0,
-	'createDirs' => 'typo3temp/beacl_cache',
+	'createDirs' => '',
 	'modify_tables' => '',
 	'clearcacheonload' => 0,
 	'lockType' => '',
@@ -34,7 +34,7 @@ $EM_CONF[$_EXTKEY] = array(
 	'CGLcompliance_note' => '',
 	'constraints' => array(
 		'depends' => array(
-			'typo3' => '3.5.0-0.0.0',
+			'typo3' => '3.5.0-6.2.99',
 		),
 		'conflicts' => array(
 		),
