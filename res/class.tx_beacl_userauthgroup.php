@@ -99,17 +99,32 @@ class tx_beacl_userAuthGroup {
 	 * @return	string		Part of where clause. Prefix " AND " to this.
 	 */
 
+<<<<<<< HEAD
 	function getPagePermsClause($params, $that) {
 
 		$fileCachePath = PATH_site . 'typo3temp/beacl_cache/';
 		$filename = $fileCachePath . 'ppc_' . md5($that->user['uid'] . $params['perms']) . ',cache';
+=======
+	function getPagePermsClause($params, $that)	{
+
+		// Load cache from BE User data
+		$cache = array();
+		if (!empty($GLOBALS['BE_USER'])) {
+		  $cache = $GLOBALS['BE_USER']->getSessionData('be_acl');
+		}
+
+>>>>>>> svn/1.4.5
 			// Check if we can return something from cache
 		if (file_exists($filename)) {
 			return t3lib_div::getURL($filename);
 		}
 
+<<<<<<< HEAD
 
 		// get be_acl config in EM
+=======
+			// get be_acl config in EM
+>>>>>>> svn/1.4.5
 		$beAclConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['be_acl']);
 		if (!$beAclConfig['disableOldPermissionSystem']) {
 			$str = $params['currentClause'];
@@ -140,11 +155,22 @@ class tx_beacl_userAuthGroup {
 			}
 		}
 
+<<<<<<< HEAD
 		// for safety, put whole where query part into brackets so it won't interfere with other parts of the page
 		$str = ' ( ' . $str . ' ) ';
 
 		// Store data in cache
 		file_put_contents($filename, $str);
+=======
+			// for safety, put whole where query part into brackets so it won't interfere with other parts of the page
+		$str = ' ( '.$str.' ) ';
+
+			// Store data in cache
+		$cache[$that->user['uid']][$params['perms']] = $str;
+		if (!empty($GLOBALS['BE_USER'])) {
+			$GLOBALS['BE_USER']->setAndSaveSessionData('be_acl', $cache);
+		}
+>>>>>>> svn/1.4.5
 		return $str;
 	}
 
