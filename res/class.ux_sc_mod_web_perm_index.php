@@ -174,7 +174,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 
 			// "Edit permissions" -icon
 			if ($editPermsAllowed && $data['row']['uid']) {
-				$aHref = 'index.php?mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . $data['row']['uid'] . '&return_id=' . $this->id . '&edit=1';
+				$aHref = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . ($data['row']['_ORIG_uid'] ? $data['row']['_ORIG_uid'] : $pageId) . '&return_id=' . $this->id . '&edit=1';
 				$cells[] = '
 					<td' . $bgCol . '><a href="' . htmlspecialchars($aHref) . '"><img' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($BACK_PATH, 'gfx/edit2.gif', 'width="11" height="12"') . ' border="0" title="' . $LANG->getLL('ch_permissions', 1) . '" align="top" alt="" /></a></td>';
 			} else {
@@ -327,7 +327,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 		$be_group_Array = \TYPO3\CMS\Backend\Utility\BackendUtility::getListGroupNames('title,uid');
 		$groupArray = array_keys($be_group_Array);
 
-		$be_user_Array = t3lib_BEfunc::getUserNames();
+		$be_user_Array = \TYPO3\CMS\Backend\Utility\BackendUtility::getUserNames();
 		if (!$GLOBALS['BE_USER']->isAdmin()) $be_user_Array = \TYPO3\CMS\Backend\Utility\BackendUtility::blindUserNames($be_user_Array, $groupArray, 1);
 		$be_group_Array_o = $be_group_Array = \TYPO3\CMS\Backend\Utility\BackendUtility::getGroupNames();
 		if (!$GLOBALS['BE_USER']->isAdmin()) $be_group_Array = \TYPO3\CMS\Backend\Utility\BackendUtility::blindGroupNames($be_group_Array_o, $groupArray, 1);
@@ -499,7 +499,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 			<input type="hidden" name="redirect" value="' . htmlspecialchars(TYPO3_MOD_PATH . 'index.php?mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . intval($this->return_id) . '&lastEdited=' . $this->id) . '" />
 		';
 		if ($this->getTypo3Version() >= 4005000)
-			$code .= t3lib_TCEforms::getHiddenTokenField('tceAction'); // only Typo3 V4.5 or later
+			$code .= \TYPO3\CMS\Backend\Form\FormEngine::getHiddenTokenField('tceAction'); // only Typo3 V4.5 or later
 
 		// Adding section with the permission setting matrix:
 		$this->content .= $this->doc->divider(5);
