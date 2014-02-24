@@ -75,7 +75,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 		$this->content .= $this->doc->spacer(5);
 
 		// Initialize tree object:
-		$tree = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('t3lib_pageTree');
+		$tree = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Tree\\View\\PageTreeView');
 		$tree->init('AND ' . $this->perms_clause);
 
 		$tree->addField('perms_user', 1);
@@ -103,6 +103,8 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 		$this->buildACLtree($aclUsers, $aclGroups);
 
 		$this->content .= $displayUserSelector;
+
+		// Selector for ACL Groups
 		$this->content .= $displayGroupSelector;
 
 
@@ -174,7 +176,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 
 			// "Edit permissions" -icon
 			if ($editPermsAllowed && $data['row']['uid']) {
-				$aHref = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . ($data['row']['_ORIG_uid'] ? $data['row']['_ORIG_uid'] : $pageId) . '&return_id=' . $this->id . '&edit=1';
+				$aHref = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl('web_perm') . '&mode='.$this->MOD_SETTINGS['mode'].'&depth='.$this->MOD_SETTINGS['depth'].'&id='.$data['row']['uid'].'&return_id='.$this->id.'&edit=1';
 				$cells[] = '
 					<td' . $bgCol . '><a href="' . htmlspecialchars($aHref) . '"><img' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($BACK_PATH, 'gfx/edit2.gif', 'width="11" height="12"') . ' border="0" title="' . $LANG->getLL('ch_permissions', 1) . '" align="top" alt="" /></a></td>';
 			} else {
@@ -478,7 +480,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 						<input type="hidden" name="' . $acl_prefix . '[recursive]" value="0" />
 						<input type="checkbox" name="' . $acl_prefix . '[recursive]" value="1" ' . ($result['recursive'] ? 'checked="checked"' : '') . ' />
 					</td>
-					<td><a href="#" onClick="deleteACL(' . $result['uid'] . ')"><img ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg('../../../', 'gfx/garbage.gif') . ' alt="' . $LANG->getLL('delAcl', 1) . '" /></a></td>
+					<td><a href="#" onClick="deleteACL(' . $result['uid'] . ')"><img ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($BACK_PATH, 'gfx/garbage.gif') . ' alt="' . $LANG->getLL('delAcl', 1) . '" /></a></td>
 				</tr>';
 		}
 
@@ -487,16 +489,16 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 			</table>
 			<br />
 			<span id="insertHiddenFields"></span>
-			<img ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg('../../../', 'gfx/garbage.gif') . ' alt="' . $LANG->getLL('delAcl', 1) . '" / id="templateDeleteImage" style="display:none">
-			<a href="javascript:addACL()"><img  ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg('../../../', 'gfx/new_el.gif') . ' alt="' . $LANG->getLL('addAcl', 1) . '" />' . $LANG->getLL('addAcl', 1) . '</a><br>
+			<img ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($BACK_PATH, 'gfx/garbage.gif') . ' alt="' . $LANG->getLL('delAcl', 1) . '" / id="templateDeleteImage" style="display:none">
+			<a href="javascript:addACL()"><img  ' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($BACK_PATH, 'gfx/new_el.gif') . ' alt="' . $LANG->getLL('addAcl', 1) . '" />' . $LANG->getLL('addAcl', 1) . '</a><br>
 
 			<input type="hidden" name="data[pages][' . $this->id . '][perms_user]" value="' . $this->pageinfo['perms_user'] . '" />
 			<input type="hidden" name="data[pages][' . $this->id . '][perms_group]" value="' . $this->pageinfo['perms_group'] . '" />
 			<input type="hidden" name="data[pages][' . $this->id . '][perms_everybody]" value="' . $this->pageinfo['perms_everybody'] . '" />
 			' . ($disableOldPermissionSystem ? '' : $this->getRecursiveSelect($this->id, $this->perms_clause)) . '
 			<input type="submit" name="submit" value="' . $LANG->getLL('saveAndClose', 1) . '" />' .
-				'<input type="submit" value="' . $LANG->getLL('Abort', 1) . '" onclick="' . htmlspecialchars('jumpToUrl(\'index.php?id=' . $this->id . '\'); return false') . '" />
-			<input type="hidden" name="redirect" value="' . htmlspecialchars(TYPO3_MOD_PATH . 'index.php?mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . intval($this->return_id) . '&lastEdited=' . $this->id) . '" />
+			'<input type="submit" value="' . $LANG->getLL('Abort', 1) . '" onclick="' . htmlspecialchars('jumpToUrl(\'mod.php?M=web_perm&id=' . $this->id . '\'); return false') . '" />
+			<input type="hidden" name="redirect" value="' . htmlspecialchars(\TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . intval($this->return_id) . '&lastEdited=' . $this->id) . '" />
 		';
 		if ($this->getTypo3Version() >= 4005000)
 			$code .= \TYPO3\CMS\Backend\Form\FormEngine::getHiddenTokenField('tceAction'); // only Typo3 V4.5 or later
