@@ -497,7 +497,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 			<input type="hidden" name="data[pages][' . $this->id . '][perms_everybody]" value="' . $this->pageinfo['perms_everybody'] . '" />
 			' . ($disableOldPermissionSystem ? '' : $this->getRecursiveSelect($this->id, $this->perms_clause)) . '
 			<input type="submit" name="submit" value="' . $LANG->getLL('saveAndClose', 1) . '" />' .
-			'<input type="submit" value="' . $LANG->getLL('Abort', 1) . '" onclick="' . htmlspecialchars('jumpToUrl(\TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(\'web_perm\') .  \'&id=' . $this->id . '\'); return false') . '" />
+			'<input type="submit" value="' . $LANG->getLL('Abort', 1) . '" onclick="' . htmlspecialchars('jumpToUrl(\TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl(\'web_perm\') . \'&id=' . $this->id . '\'); return false') . '" />
 			<input type="hidden" name="redirect" value="' . htmlspecialchars(\TYPO3\CMS\Backend\Utility\BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . intval($this->return_id) . '&lastEdited=' . $this->id) . '" />
 		';
 		if ($this->getTypo3Version() >= 4005000)
