@@ -307,6 +307,32 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 	}
 
 	/**
+	 * Configuration of the menu and initialization of ->MOD_SETTINGS
+	 *
+	 * @return void
+	 */
+	public function menuConfig() {
+		$level = $GLOBALS['LANG']->getLL('levels');
+		$this->MOD_MENU = array(
+				'depth' => array(
+						1 => '1 ' . $level,
+						2 => '2 ' . $level,
+						3 => '3 ' . $level,
+						4 => '4 ' . $level,
+						10 => '10 ' . $level,
+
+				),
+				'mode' => array(
+						0 => $GLOBALS['LANG']->getLL('user_overview'),
+						'perms' => $GLOBALS['LANG']->getLL('permissions')
+				)
+		);
+		// Clean up settings:
+		$this->MOD_SETTINGS = \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData($this->MOD_MENU, \TYPO3\CMS\Core\Utility\GeneralUtility::_GP('SET'), $this->MCONF['name']);
+	}
+
+
+	/**
 	 * Creating form for editing the permissions    ($this->edit = true)
 	 * (Adding content to internal content variable)
 	 *
@@ -339,7 +365,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 		// set JavaScript
 		$subPagesData = '';
 		// generate list if record is available on subpages, if yes, enter the id
-		$this->content .= '<script src="../../../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('be_acl') . 'res/acl.js" type="text/javascript">
+		$this->content .= '<script src="../../../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('be_acl') . 'Resources//acl.js" type="text/javascript">
 			' . $subPagesData . '
 		</script>';
 
