@@ -365,7 +365,7 @@ class ux_SC_mod_web_perm_index extends \TYPO3\CMS\Perm\Controller\PermissionModu
 		// set JavaScript
 		$subPagesData = '';
 		// generate list if record is available on subpages, if yes, enter the id
-		$this->content .= '<script src="../../../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('be_acl') . 'Resources//acl.js" type="text/javascript">
+		$this->content .= '<script src="../../../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extRelPath('be_acl') . 'Resources/Public/JavaScript/acl.js" type="text/javascript">
 			' . $subPagesData . '
 		</script>';
 
