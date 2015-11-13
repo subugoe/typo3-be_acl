@@ -1,6 +1,4 @@
 <?php
-
-
 /***************************************************************
  *  Copyright notice
  *
@@ -24,214 +22,260 @@
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+
 /**
  * Backend ACL - Functions re-calculating permissions
- *
- * @author  Sebastian Kurfuerst <sebastian@typo3.org>
  */
-class tx_beacl_userAuthGroup {
+class tx_beacl_userAuthGroup
+{
+    /**
+     * @var array
+     */
+    protected $aclDisallowed = [];
 
-	/**
-	 * Returns a combined binary representation of the current users permissions for the page-record, $row.
-	 * The perms for user, group and everybody is OR'ed together (provided that the page-owner is the user and for the groups that the user is a member of the group
-	 * If the user is admin, 31 is returned    (full permissions for all five flags)
-	 *
-	 * @param    array        Input page row with all perms_* fields available.
-	 * @param    object        BE User Object
-	 * @return    integer        Bitwise representation of the users permissions in relation to input page row, $row
-	 */
-	public function calcPerms($params, $that) {
-		$row = $params['row'];
+    /**
+     * @var array
+     */
+    protected $aclPageList = [];
 
-		$beAclConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['be_acl']);
-		if (!$beAclConfig['disableOldPermissionSystem']) {
-			$out = $params['outputPermissions'];
-		} else {
-			$out = 0;
-		}
+    /**
+     * @var \TYPO3\CMS\Core\Database\DatabaseConnection
+     */
+    protected $databaseConnection;
 
-		$rootLine = \TYPO3\CMS\Backend\Utility\BackendUtility::BEgetRootLine($row['uid']);
+    /**
+     * @var \TYPO3\CMS\Core\Authentication\BackendUserAuthentication
+     */
+    protected $backendUser;
 
-		$i = 0;
-		$takeUserIntoAccount = 1;
-		$groupIdsAlreadyUsed = Array();
-		foreach ($rootLine as $level => $values) {
-			if ($i != 0) {
-				$recursive = ' AND recursive=1';
-			} else {
-				$recursive = '';
-			}
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('*', 'tx_beacl_acl', 'pid=' . intval($values['uid']) . $recursive, '', 'recursive ASC');
+    public function __construct()
+    {
+        $this->databaseConnection = $GLOBALS['TYPO3_DB'];
+        $this->backendUser &= $GLOBALS['BE_USER'];
+    }
 
-			while ($result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-				if ($result['type'] == 0
-						&& ($that->user['uid'] == $result['object_id'])
-						&& $takeUserIntoAccount
-				) { // user has to be taken into account
-					$out |= $result['permissions'];
-					$takeUserIntoAccount = 0;
+    /**
+     * Returns a combined binary representation of the current users permissions for the page-record, $row.
+     * The perms for user, group and everybody is OR'ed together (provided that the page-owner is the user and for the groups that the user is a member of the group
+     * If the user is admin, 31 is returned    (full permissions for all five flags)
+     *
+     * @param array $params Input page row with all perms_* fields available.
+     * @param object $that BE User Object
+     * @return int Bitwise representation of the users permissions in relation to input page row, $row
+     */
+    public function calcPerms($params, $that)
+    {
+        $row = $params['row'];
 
-				} elseif ($result['type'] == 1
-						&& $that->isMemberOfGroup($result['object_id'])
-						&& !in_array($result['object_id'], $groupIdsAlreadyUsed)
-				) {
-					$out |= $result['permissions'];
-					$groupIdsAlreadyUsed[] = $result['object_id'];
-				}
-			}
-			$i++;
-		}
+        $beAclConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['be_acl']);
+        if (!$beAclConfig['disableOldPermissionSystem']) {
+            $out = $params['outputPermissions'];
+        } else {
+            $out = 0;
+        }
 
-		return $out;
-	}
+        $rootLine = BackendUtility::BEgetRootLine($row['uid']);
 
-	/**
-	 * Returns a WHERE-clause for the pages-table where user permissions according to input argument, $perms, is validated.
-	 * $perms is the 'mask' used to select. Fx. if $perms is 1 then you'll get all pages that a user can actually see!
-	 *        2^0 = show (1)
-	 *        2^1 = edit (2)
-	 *        2^2 = delete (4)
-	 *        2^3 = new (8)
-	 * If the user is 'admin' " 1=1" is returned (no effect)
-	 * If the user is not set at all (->user is not an array), then " 1=0" is returned (will cause no selection results at all)
-	 * The 95% use of this function is "->getPagePermsClause(1)" which will return WHERE clauses for *selecting* pages in backend listings - in other words will this check read permissions.
-	 *
-	 * @param    integer        Permission mask to use, see function description
-	 * @param    object        BE User Object
-	 * @return    string        Part of where clause. Prefix " AND " to this.
-	 */
+        $i = 0;
+        $takeUserIntoAccount = 1;
+        $groupIdsAlreadyUsed = [];
+        foreach ($rootLine as $level => $values) {
+            if ($i != 0) {
+                $recursive = ' AND recursive=1';
+            } else {
+                $recursive = '';
+            }
+            $res = $this->databaseConnection->exec_SELECTquery(
+                '*',
+                'tx_beacl_acl',
+                'pid=' . intval($values['uid']) . $recursive,
+                '',
+                'recursive ASC'
+            );
 
-	function getPagePermsClause($params, $that) {
+            while ($result = $this->databaseConnection->sql_fetch_assoc($res)) {
+                if ($result['type'] == 0
+                    && ($that->user['uid'] == $result['object_id'])
+                    && $takeUserIntoAccount
+                ) {
+                    $out |= $result['permissions'];
+                    $takeUserIntoAccount = 0;
 
-		// Load cache from BE User data
-		$cache = array();
-		if (!empty($GLOBALS['BE_USER'])) {
-			$cache = $GLOBALS['BE_USER']->getSessionData('be_acl');
-		}
+                } elseif ($result['type'] == 1
+                    && $that->isMemberOfGroup($result['object_id'])
+                    && !in_array($result['object_id'], $groupIdsAlreadyUsed)
+                ) {
+                    $out |= $result['permissions'];
+                    $groupIdsAlreadyUsed[] = $result['object_id'];
+                }
+            }
+            $i++;
+        }
 
-		// Check if we can return something from cache
-		if (is_array($cache[$that->user['uid']])
-				&& $cache[$that->user['uid']][$params['perms']]
-		) {
-			return $cache[$that->user['uid']][$params['perms']];
-		}
+        return $out;
+    }
 
-		// get be_acl config in EM
-		$beAclConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['be_acl']);
-		if (!$beAclConfig['disableOldPermissionSystem']) {
-			$str = $params['currentClause'];
-		} else {
-			$str = '1 = 2';
-		}
-		// get some basic variables
-		$perms = $params['perms'];
-		$this->aclPageList = Array();
+    /**
+     * Returns a WHERE-clause for the pages-table where user permissions according to input argument, $perms, is validated.
+     * $perms is the 'mask' used to select. Fx. if $perms is 1 then you'll get all pages that a user can actually see!
+     *        2^0 = show (1)
+     *        2^1 = edit (2)
+     *        2^2 = delete (4)
+     *        2^3 = new (8)
+     * If the user is 'admin' " 1=1" is returned (no effect)
+     * If the user is not set at all (->user is not an array), then " 1=0" is returned (will cause no selection results at all)
+     * The 95% use of this function is "->getPagePermsClause(1)" which will return WHERE clauses for *selecting* pages in backend listings - in other words will this check read permissions.
+     *
+     * @param integer $params Permission mask to use, see function description
+     * @param object $that BE User Object
+     * @return string Part of where clause. Prefix " AND " to this.
+     */
+    function getPagePermsClause($params, $that)
+    {
 
-		// get allowed IDs for user
-		$this->getPagePermsClause_single(0, $that->user['uid'], $perms);
-		// get allowed IDs for every single group
-		if ($that->groupList) {
-			$groupList = explode(',', $that->groupList);
-			foreach ($groupList as $singleGroup) {
-				$this->getPagePermsClause_single(1, $singleGroup, $perms);
-			}
-		}
-		if (!empty($this->aclPageList)) {
-			// put all page IDs together to the final SQL string
-			$str = '( ' . $str . ' ) OR ( pages.uid IN (' . implode(',', $this->aclPageList) . ') )';
+        // Load cache from BE User data
+        $cache = [];
+        if (!empty($this->backendUser)) {
+            $cache = $this->backendUser->getSessionData('be_acl');
+        }
 
-			// if the user is in a workspace, that has to be taken into account
-			// see t3lib_BEfunc::getWorkspaceVersionOfRecord() for the source of this query
-			if ($that->workspace) {
-				$str .= ' OR ( pages.t3ver_wsid=' . intval($that->workspace) . ' AND pages.t3ver_oid IN (' . implode(',', $this->aclPageList) . ') )';
-			}
-		}
+        // Check if we can return something from cache
+        if (is_array($cache[$that->user['uid']])
+            && $cache[$that->user['uid']][$params['perms']]
+        ) {
+            return $cache[$that->user['uid']][$params['perms']];
+        }
 
-		// for safety, put whole where query part into brackets so it won't interfere with other parts of the page
-		$str = ' ( ' . $str . ' ) ';
+        // get be_acl config in EM
+        $beAclConfig = unserialize($GLOBALS['TYPO3_CONF_VARS']['EXT']['extConf']['be_acl']);
 
-		// Store data in cache
-		$cache[$that->user['uid']][$params['perms']] = $str;
-		if (!empty($GLOBALS['BE_USER'])) {
-			$GLOBALS['BE_USER']->setAndSaveSessionData('be_acl', $cache);
-		}
-		return $str;
-	}
+        if (!$beAclConfig['disableOldPermissionSystem']) {
+            $str = $params['currentClause'];
+        } else {
+            $str = '1 = 2';
+        }
 
-	/**
-	 * adds allowed pages to $this->aclPageList for a certain user/group
-	 *
-	 * most of the code found here was before in getPagePermsClause of be_acl
-	 *
-	 * @param $type int  Type of the ACL record (0 - User, 1 - Group)
-	 * @param $object_id int  ID of the group / user
-	 * @param $perms int  permission mask to use
-	 * @return nothing, fills $this->aclPageList
-	 **/
-	protected function getPagePermsClause_single($type, $object_id, $perms) {
-		// reset aclDisallowed
-		$this->aclDisallowed = Array();
-		// 1. fetch all ACLs relevant for the current user/group
-		$aclAllowed = Array();
-		$where = ' ( (type = ' . intval($type) . ' AND object_id = ' . intval($object_id) . ')';
+        // get some basic variables
+        $perms = $params['perms'];
+        $this->aclPageList = [];
 
-		$whereAllow = ') AND (permissions & ' . $perms . ' = ' . $perms . ')';
-		$whereDeny = ') AND (permissions & ' . $perms . ' = 0)';
+        // get allowed IDs for user
+        $this->getPagePermsClause_single(0, $that->user['uid'], $perms);
 
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-				'pid, recursive',
-				'tx_beacl_acl',
-				$where . $whereAllow
-		);
-		while ($result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$aclAllowed[] = $result;
-		}
+        // get allowed IDs for every single group
+        if ($that->groupList) {
+            $groupList = explode(',', $that->groupList);
+            foreach ($groupList as $singleGroup) {
+                $this->getPagePermsClause_single(1, $singleGroup, $perms);
+            }
+        }
 
-		if ($aclAllowed) {
-			// get all "deny" acls if there are allow ACLs
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
-					'pid, recursive',
-					'tx_beacl_acl',
-					$where . $whereDeny
-			);
-			while ($result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-				$this->aclDisallowed[$result['pid']] = $result['recursive']; // only one ACL per group/user per page is allowed, that's why this line imposes no problem. It rather increases speed.
-			}
+        if (!empty($this->aclPageList)) {
+            // put all page IDs together to the final SQL string
+            $str = '( ' . $str . ' ) OR ( pages.uid IN (' . implode(',', $this->aclPageList) . ') )';
 
-			// go through all allowed ACLs, if it is not recursive, add the page to the aclPageList, if recursive, call recursion function
-			foreach ($aclAllowed as $singleAllow) {
-				if ($singleAllow['recursive'] == 0) {
-					$this->aclPageList[$singleAllow['pid']] = $singleAllow['pid'];
-				} else {
-					$this->aclTraversePageTree($singleAllow['pid']);
-				}
-			} // foreach
-		} // if($aclAllowed)
-	} // function getPagePermsClause_single
+            // if the user is in a workspace, that has to be taken into account
+            // see t3lib_BEfunc::getWorkspaceVersionOfRecord() for the source of this query
+            if ($that->workspace) {
+                $str .= ' OR ( pages.t3ver_wsid=' . intval($that->workspace) . ' AND pages.t3ver_oid IN (' . implode(',',
+                        $this->aclPageList) . ') )';
+            }
+        }
 
-	/**
-	 * traverses page tree and handles "disallow" ACLs
-	 *
-	 * is a recursive function.
-	 * @param $pid int  Page ID where to start traversing the tree
-	 * @return nothing, fills $this->aclPageList
-	 **/
-	protected function aclTraversePageTree($pid) {
-		// if there is a disallow ACL for the current page, don't add the page to the aclPageList
-		if (array_key_exists($pid, $this->aclDisallowed)) {
-			if ($this->aclDisallowed[$pid] == 1) {
-				return 0; // if recursive, stop processing
-			}
-		} else { // in case there is no disallow ACL, add page ID to aclPageList
-			$this->aclPageList[$pid] = $pid;
-		}
+        // for safety, put whole where query part into brackets so it won't interfere with other parts of the page
+        $str = ' ( ' . $str . ' ) ';
 
-		// find subpages and call function itself again
-		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid', 'pages', 'pid=' . intval($pid) . ' AND deleted=0');
-		while ($result = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-			$this->aclTraversePageTree($result['uid']);
-		}
-	}
+        // Store data in cache
+        $cache[$that->user['uid']][$params['perms']] = $str;
+
+        if (!empty($this->backendUser)) {
+            $this->backendUser->setAndSaveSessionData('be_acl', $cache);
+        }
+
+        return $str;
+    }
+
+    /**
+     * adds allowed pages to $this->aclPageList for a certain user/group
+     *
+     * most of the code found here was before in getPagePermsClause of be_acl
+     *
+     * @param int $type Type of the ACL record (0 - User, 1 - Group)
+     * @param int $object_id  ID of the group / user
+     * @param int $perms permission mask to use
+     **/
+    protected function getPagePermsClause_single($type, $object_id, $perms)
+    {
+        // reset aclDisallowed
+        $this->aclDisallowed = [];
+        // 1. fetch all ACLs relevant for the current user/group
+        $aclAllowed = [];
+        $where = ' ( (type = ' . intval($type) . ' AND object_id = ' . intval($object_id) . ')';
+
+        $whereAllow = ') AND (permissions & ' . $perms . ' = ' . $perms . ')';
+        $whereDeny = ') AND (permissions & ' . $perms . ' = 0)';
+
+        $res = $this->databaseConnection->exec_SELECTquery(
+            'pid, recursive',
+            'tx_beacl_acl',
+            $where . $whereAllow
+        );
+
+        while ($result = $this->databaseConnection->sql_fetch_assoc($res)) {
+            $aclAllowed[] = $result;
+        }
+
+        if ($aclAllowed) {
+            // get all "deny" acls if there are allow ACLs
+            $res = $this->databaseConnection->exec_SELECTquery(
+                'pid, recursive',
+                'tx_beacl_acl',
+                $where . $whereDeny
+            );
+
+            while ($result = $this->databaseConnection->sql_fetch_assoc($res)) {
+                $this->aclDisallowed[$result['pid']] = $result['recursive']; // only one ACL per group/user per page is allowed, that's why this line imposes no problem. It rather increases speed.
+            }
+
+            // go through all allowed ACLs, if it is not recursive, add the page to the aclPageList, if recursive, call recursion function
+            foreach ($aclAllowed as $singleAllow) {
+                if ($singleAllow['recursive'] == 0) {
+                    $this->aclPageList[$singleAllow['pid']] = $singleAllow['pid'];
+                } else {
+                    $this->aclTraversePageTree($singleAllow['pid']);
+                }
+            }
+        }
+    }
+
+    /**
+     * traverses page tree and handles "disallow" ACLs
+     *
+     * is a recursive function.
+     * @param int $pid  Page ID where to start traversing the tree
+     * @return mixed
+     **/
+    protected function aclTraversePageTree($pid)
+    {
+        // if there is a disallow ACL for the current page, don't add the page to the aclPageList
+        if (array_key_exists($pid, $this->aclDisallowed)) {
+            if ($this->aclDisallowed[$pid] == 1) {
+                return 0; // if recursive, stop processing
+            }
+        } else { // in case there is no disallow ACL, add page ID to aclPageList
+            $this->aclPageList[$pid] = $pid;
+        }
+
+        // find subpages and call function itself again
+        $res = $this->databaseConnection->exec_SELECTquery(
+            'uid',
+            'pages',
+            'pid=' . intval($pid) . ' AND deleted=0'
+        );
+
+        while ($result = $this->databaseConnection->sql_fetch_assoc($res)) {
+            $this->aclTraversePageTree($result['uid']);
+        }
+    }
 }
-
-?>
