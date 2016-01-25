@@ -21,6 +21,5 @@ class DatabaseOperations
             $backendUser->setAndSaveSessionData('be_acl', []);
             $backendUser->getPagePermsClause(1);
         }
-
     }
 }

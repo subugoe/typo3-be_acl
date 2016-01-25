@@ -2,7 +2,7 @@
 
 namespace Subugoe\BeAcl;
 
-use \TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 
 class ObjectSelector
 {

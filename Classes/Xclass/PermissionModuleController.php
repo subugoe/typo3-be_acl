@@ -29,9 +29,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\Utility\IconUtility;
 use TYPO3\CMS\Beuser\Controller\PermissionController;
 use TYPO3\CMS\Beuser\Controller\PermissionAjaxController;
-use TYPO3\CMS\Core\Utility\DebugUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 /**
  * Backend ACL - Replacement for "web->Access"
@@ -48,18 +46,6 @@ class PermissionModuleController extends PermissionController
      * @var array
      */
     protected $aclList;
-
-
-    /**
-         * Index action
-         *
-         * @return void
-         */
-        public function indexAction()
-        {
-           DebugUtility::debug('SAtab');
-        }
-
 
     /**
      * Showing the permissions in a tree ($this->edit = false)
@@ -112,12 +98,12 @@ class PermissionModuleController extends PermissionController
 			<thead>
 				<tr>
 					<th colspan="2">&nbsp;</th>
-					<th>' . $this->getLanguageService()->getLL('Owner', TRUE) . '</th>';
+					<th>' . $this->getLanguageService()->getLL('Owner', true) . '</th>';
         $tableCells = [];
         if (!$disableOldPermissionSystem) {
-            $tableCells[] = $this->getLanguageService()->getLL('Group', TRUE);
-            $tableCells[] = $this->getLanguageService()->getLL('Everybody', TRUE);
-            $tableCells[] = $this->getLanguageService()->getLL('EditLock', TRUE);
+            $tableCells[] = $this->getLanguageService()->getLL('Group', true);
+            $tableCells[] = $this->getLanguageService()->getLL('Everybody', true);
+            $tableCells[] = $this->getLanguageService()->getLL('EditLock', true);
         }
         // ACL headers
         if (!empty($aclUsers)) {
@@ -153,7 +139,7 @@ class PermissionModuleController extends PermissionController
 
             if ($data['row']['perms_userid'] && !$beUserArray[$data['row']['perms_userid']]) {
                 $userName = PermissionAjaxController::renderOwnername($pageId, $data['row']['perms_userid'],
-                    htmlspecialchars(GeneralUtility::fixed_lgd_cs($userName, 20)), FALSE);
+                    htmlspecialchars(GeneralUtility::fixed_lgd_cs($userName, 20)), false);
             } else {
                 $userName = PermissionAjaxController::renderOwnername($pageId, $data['row']['perms_userid'],
                     htmlspecialchars(GeneralUtility::fixed_lgd_cs($userName, 20)));
@@ -165,7 +151,7 @@ class PermissionModuleController extends PermissionController
 
             if ($data['row']['perms_groupid'] && !$beGroupArray[$data['row']['perms_groupid']]) {
                 $groupName = PermissionAjaxController::renderGroupname($pageId, $data['row']['perms_groupid'],
-                    htmlspecialchars(GeneralUtility::fixed_lgd_cs($groupName, 20)), FALSE);
+                    htmlspecialchars(GeneralUtility::fixed_lgd_cs($groupName, 20)), false);
             } else {
                 $groupName = PermissionAjaxController::renderGroupname($pageId, $data['row']['perms_groupid'],
                     htmlspecialchars(GeneralUtility::fixed_lgd_cs($groupName, 20)));
@@ -184,7 +170,7 @@ class PermissionModuleController extends PermissionController
             if ($editPermsAllowed && $pageId) {
                 $aHref = BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . ($data['row']['_ORIG_uid'] ? $data['row']['_ORIG_uid'] : $pageId) . '&return_id=' . $this->id . '&edit=1';
                 $cells[] = '<td' . $bgCol . '><a href="' . htmlspecialchars($aHref) . '" title="' . $this->getLanguageService()->getLL('ch_permissions',
-                        TRUE) . '">' .
+                        true) . '">' .
                     IconUtility::getSpriteIcon('actions-document-open') . '</a></td>';
             } else {
                 $cells[] = '<td' . $bgCol . '></td>';
@@ -199,7 +185,7 @@ class PermissionModuleController extends PermissionController
 				<td' . $bgCol . ' nowrap="nowrap">' . ($pageId ? ' ' . PermissionAjaxController::renderPermissions($data['row']['perms_everybody'],
                             $pageId, 'everybody') : '') . '</td>
 				<td' . $bgCol . ' nowrap="nowrap">' . ($data['row']['editlock'] ? '<span id="el_' . $pageId . '" class="editlock"><a class="editlock" onclick="WebPermissions.toggleEditLock(\'' . $pageId . '\', \'1\');" title="' . $this->getLanguageService()->getLL('EditLock_descr',
-                            TRUE) . '">' . IconUtility::getSpriteIcon('status-warning-lock') . '</a></span>' : ($pageId === 0 ? '' : '<span id="el_' . $pageId . '" class="editlock"><a class="editlock" onclick="WebPermissions.toggleEditLock(\'' . $pageId . '\', \'0\');" title="Enable the &raquo;Admin-only&laquo; edit lock for this page">[+]</a></span>')) . '</td>
+                            true) . '">' . IconUtility::getSpriteIcon('status-warning-lock') . '</a></span>' : ($pageId === 0 ? '' : '<span id="el_' . $pageId . '" class="editlock"><a class="editlock" onclick="WebPermissions.toggleEditLock(\'' . $pageId . '\', \'0\');" title="Enable the &raquo;Admin-only&laquo; edit lock for this page">[+]</a></span>')) . '</td>
 			';
             }
 
@@ -248,43 +234,42 @@ class PermissionModuleController extends PermissionController
         $this->content .= BackendUtility::cshItem('xMOD_csh_corebe', 'perm_module', $GLOBALS['BACK_PATH'], '<br />|');
 
         // Creating legend table:
-        $legendText = '<strong>' . $this->getLanguageService()->getLL('1', TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('1_t',
-                TRUE);
+        $legendText = '<strong>' . $this->getLanguageService()->getLL('1', true) . '</strong>: ' . $this->getLanguageService()->getLL('1_t',
+                true);
         $legendText .= '<br /><strong>' . $this->getLanguageService()->getLL('16',
-                TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('16_t', TRUE);
+                true) . '</strong>: ' . $this->getLanguageService()->getLL('16_t', true);
         $legendText .= '<br /><strong>' . $this->getLanguageService()->getLL('2',
-                TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('2_t', TRUE);
+                true) . '</strong>: ' . $this->getLanguageService()->getLL('2_t', true);
         $legendText .= '<br /><strong>' . $this->getLanguageService()->getLL('4',
-                TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('4_t', TRUE);
+                true) . '</strong>: ' . $this->getLanguageService()->getLL('4_t', true);
         $legendText .= '<br /><strong>' . $this->getLanguageService()->getLL('8',
-                TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('8_t', TRUE);
+                true) . '</strong>: ' . $this->getLanguageService()->getLL('8_t', true);
 
         $code = '<div id="permission-information">
 					<img' . IconUtility::skinImg($GLOBALS['BACK_PATH'], 'gfx/legend.gif', 'width="86" height="75"') . ' alt="" />
 				<div class="text">' . $legendText . '</div></div>';
 
-        $code .= '<div id="perm-legend">' . $this->getLanguageService()->getLL('def', TRUE);
+        $code .= '<div id="perm-legend">' . $this->getLanguageService()->getLL('def', true);
         $code .= '<br /><br />' . IconUtility::getSpriteIcon('status-status-permission-granted') . ': ' . $this->getLanguageService()->getLL('A_Granted',
-                TRUE);
+                true);
         $code .= '<br />' . IconUtility::getSpriteIcon('status-status-permission-denied') . ': ' . $this->getLanguageService()->getLL('A_Denied',
-                TRUE);
+                true);
         $code .= '</div>';
 
         // Adding section with legend code:
-        $this->content .= $this->doc->section($this->getLanguageService()->getLL('Legend') . ':', $code, TRUE, TRUE);
+        $this->content .= $this->doc->section($this->getLanguageService()->getLL('Legend') . ':', $code, true, true);
     }
 
     /**
      * outputs a selector for users / groups, returns current ACLs
      *
-     * @param integer $type type of ACL. 0 -> user, 1 -> group
+     * @param int $type type of ACL. 0 -> user, 1 -> group
      * @param string $displayPointer Pointer where the display code is stored
      * @param array $conf configuration of ACLs
      * @return array list of groups/users where the ACLs will be shown
      */
-    function acl_objectSelector($type, &$displayPointer, $conf)
+    public function acl_objectSelector($type, &$displayPointer, $conf)
     {
-
         $aclObjects = [];
 
         $res = $this->getDatabaseConnection()->exec_SELECTquery(
@@ -372,7 +357,7 @@ class PermissionModuleController extends PermissionController
             return $currentSelection;
         }
 
-        return NULL;
+        return null;
     }
 
     /*****************************
@@ -492,7 +477,7 @@ class PermissionModuleController extends PermissionController
      * @param array $cells array of cells
      * @return string HTML output for the cells
      */
-    function printTableHeader($cells)
+    public function printTableHeader($cells)
     {
         $wrappedCells = '';
         foreach ($cells as $singleCell) {
@@ -500,28 +485,26 @@ class PermissionModuleController extends PermissionController
         }
 
         return $wrappedCells;
-
     }
 
     /**
      * generates title attribute for pages
      *
-     * @param integer $uid UID of page
+     * @param int $uid UID of page
      * @param array $be_user_Array BE user array
      * @param array $be_group_Array BE group array
      * @return string HTML: title attribute
      */
-    function generateTitleAttribute($uid, $be_user_Array, $be_group_Array)
+    public function generateTitleAttribute($uid, $be_user_Array, $be_group_Array)
     {
-
         $composedStr = '';
         $this->aclList[$uid];
         if (!$this->aclList[$uid]) {
-            return FALSE;
+            return false;
         }
         foreach ($this->aclList[$uid] as $type => $v1) {
             if (!$v1) {
-                return FALSE;
+                return false;
             }
             foreach ($v1 as $object_id => $v2) {
                 if ($v2['newAcl']) {
@@ -537,7 +520,7 @@ class PermissionModuleController extends PermissionController
         return ' title="' . $composedStr . '"' . ($composedStr ? ' class="bgColor5"' : '');
     }
 
-    function countAcls($pageData)
+    public function countAcls($pageData)
     {
         $i = 0;
         if (!$pageData) {
@@ -555,10 +538,10 @@ class PermissionModuleController extends PermissionController
     /**
      * Print a set of permissions
      *
-     * @param integer $int Permission integer (bits)
+     * @param int $int Permission integer (bits)
      * @return string HTML marked up x/* indications.
      */
-    function printPerms($int)
+    public function printPerms($int)
     {
         $permissions = [
             1,
@@ -592,11 +575,9 @@ class PermissionModuleController extends PermissionController
      * Creating form for editing the permissions    ($this->edit = true)
      * (Adding content to internal content variable)
      *
-     * @return    void
      */
     public function doEdit()
     {
-
         if ($this->getBackendUser()->workspace != 0) {
             // Adding section with the permission setting matrix:
             $flashMessage = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Messaging\FlashMessage::class,
@@ -662,7 +643,7 @@ class PermissionModuleController extends PermissionController
         if ($disableOldPermissionSystem) {
             $this->content .= $selector;
         } else {
-            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Owner'), $selector, TRUE);
+            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Owner'), $selector, true);
         }
 
         // Group selector:
@@ -687,7 +668,7 @@ class PermissionModuleController extends PermissionController
         if ($disableOldPermissionSystem) {
             $this->content .= $selector;
         } else {
-            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Group'), $selector, TRUE);
+            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Group'), $selector, true);
         }
 
         // Permissions checkbox matrix:
@@ -697,11 +678,11 @@ class PermissionModuleController extends PermissionController
 				<thead>
 					<tr>
 						<th></th>
-						<th>' . $this->getLanguageService()->getLL('1', TRUE) . '</th>
-						<th>' . $this->getLanguageService()->getLL('16', TRUE) . '</th>
-						<th>' . $this->getLanguageService()->getLL('2', TRUE) . '</th>
-						<th>' . $this->getLanguageService()->getLL('4', TRUE) . '</th>
-						<th>' . $this->getLanguageService()->getLL('8', TRUE) . '</th>
+						<th>' . $this->getLanguageService()->getLL('1', true) . '</th>
+						<th>' . $this->getLanguageService()->getLL('16', true) . '</th>
+						<th>' . $this->getLanguageService()->getLL('2', true) . '</th>
+						<th>' . $this->getLanguageService()->getLL('4', true) . '</th>
+						<th>' . $this->getLanguageService()->getLL('8', true) . '</th>
 						<th>' . str_replace(' ', '<br />', $this->getLanguageService()->getLL('recursiveAcl', 1)) . '</th>
 						<th></th>
 					</tr>
@@ -711,7 +692,7 @@ class PermissionModuleController extends PermissionController
         if (!$disableOldPermissionSystem) {
             $code .= '
 					<tr>
-						<td><strong>' . $this->getLanguageService()->getLL('Owner', TRUE) . '</strong></td>
+						<td><strong>' . $this->getLanguageService()->getLL('Owner', true) . '</strong></td>
 						<td>' . $this->printCheckBox('perms_user', 1) . '</td>
 						<td>' . $this->printCheckBox('perms_user', 5) . '</td>
 						<td>' . $this->printCheckBox('perms_user', 2) . '</td>
@@ -721,7 +702,7 @@ class PermissionModuleController extends PermissionController
 						<td></td>
 					</tr>
 					<tr>
-						<td><strong>' . $this->getLanguageService()->getLL('Group', TRUE) . '</strong></td>
+						<td><strong>' . $this->getLanguageService()->getLL('Group', true) . '</strong></td>
 						<td>' . $this->printCheckBox('perms_group', 1) . '</td>
 						<td>' . $this->printCheckBox('perms_group', 5) . '</td>
 						<td>' . $this->printCheckBox('perms_group', 2) . '</td>
@@ -731,7 +712,7 @@ class PermissionModuleController extends PermissionController
 						<td></td>
 					</tr>
 					<tr>
-						<td><strong>' . $this->getLanguageService()->getLL('Everybody', TRUE) . '</strong></td>
+						<td><strong>' . $this->getLanguageService()->getLL('Everybody', true) . '</strong></td>
 						<td>' . $this->printCheckBox('perms_everybody', 1) . '</td>
 						<td>' . $this->printCheckBox('perms_everybody', 5) . '</td>
 						<td>' . $this->printCheckBox('perms_everybody', 2) . '</td>
@@ -791,14 +772,14 @@ class PermissionModuleController extends PermissionController
 			<input type="hidden" name="data[pages][' . $this->id . '][perms_everybody]" value="' . $this->pageinfo['perms_everybody'] . '" />
 			' . ($disableOldPermissionSystem ? '' : $this->getRecursiveSelect($this->id, $this->perms_clause)) . '
 			<input type="submit" name="submit" value="' . $this->getLanguageService()->getLL('saveAndClose',
-                TRUE) . '" />' . '<input type="submit" value="' . $this->getLanguageService()->getLL('Abort',
-                TRUE) . '" onclick="' . htmlspecialchars(('jumpToUrl(' . GeneralUtility::quoteJSvalue((BackendUtility::getModuleUrl('web_perm') . '&id=' . $this->id),
-                    TRUE) . '); return false;')) . '" />
+                true) . '" />' . '<input type="submit" value="' . $this->getLanguageService()->getLL('Abort',
+                true) . '" onclick="' . htmlspecialchars(('jumpToUrl(' . GeneralUtility::quoteJSvalue((BackendUtility::getModuleUrl('web_perm') . '&id=' . $this->id),
+                    true) . '); return false;')) . '" />
 			<input type="hidden" name="redirect" value="' . htmlspecialchars((BackendUtility::getModuleUrl('web_perm') . '&mode=' . $this->MOD_SETTINGS['mode'] . '&depth=' . $this->MOD_SETTINGS['depth'] . '&id=' . (int)$this->return_id . '&lastEdited=' . $this->id)) . '" />
 			' . \TYPO3\CMS\Backend\Form\FormEngine::getHiddenTokenField('tceAction');
 
         // Adding section with the permission setting matrix:
-        $this->content .= $this->doc->section($this->getLanguageService()->getLL('permissions'), $code, TRUE);
+        $this->content .= $this->doc->section($this->getLanguageService()->getLL('permissions'), $code, true);
 
         // CSH for permissions setting
         $this->content .= BackendUtility::cshItem('xMOD_csh_corebe', 'perm_module_setting', $GLOBALS['BACK_PATH'],
@@ -807,19 +788,19 @@ class PermissionModuleController extends PermissionController
         // Adding help text:
         if ($this->getBackendUser()->uc['helpText']) {
             $legendText = '<p><strong>' . $this->getLanguageService()->getLL('1',
-                    TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('1_t', TRUE) . '<br />';
+                    true) . '</strong>: ' . $this->getLanguageService()->getLL('1_t', true) . '<br />';
             $legendText .= '<strong>' . $this->getLanguageService()->getLL('16',
-                    TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('16_t', TRUE) . '<br />';
+                    true) . '</strong>: ' . $this->getLanguageService()->getLL('16_t', true) . '<br />';
             $legendText .= '<strong>' . $this->getLanguageService()->getLL('2',
-                    TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('2_t', TRUE) . '<br />';
+                    true) . '</strong>: ' . $this->getLanguageService()->getLL('2_t', true) . '<br />';
             $legendText .= '<strong>' . $this->getLanguageService()->getLL('4',
-                    TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('4_t', TRUE) . '<br />';
+                    true) . '</strong>: ' . $this->getLanguageService()->getLL('4_t', true) . '<br />';
             $legendText .= '<strong>' . $this->getLanguageService()->getLL('8',
-                    TRUE) . '</strong>: ' . $this->getLanguageService()->getLL('8_t', TRUE) . '</p>';
+                    true) . '</strong>: ' . $this->getLanguageService()->getLL('8_t', true) . '</p>';
 
-            $code = $legendText . '<p>' . $this->getLanguageService()->getLL('def', TRUE) . '</p>';
+            $code = $legendText . '<p>' . $this->getLanguageService()->getLL('def', true) . '</p>';
 
-            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Legend', TRUE), $code, TRUE);
+            $this->content .= $this->doc->section($this->getLanguageService()->getLL('Legend', true), $code, true);
         }
     }
 
@@ -827,11 +808,11 @@ class PermissionModuleController extends PermissionController
      * Print a checkbox for the edit-permission form
      *
      * @param    string     $checkName   Checkbox name key
-     * @param    integer     $num   Checkbox number index
+     * @param    int     $num   Checkbox number index
      * @param string     $result   Result sting, not mandatory
      * @return    string        HTML checkbox
      */
-    function printCheckBox($checkName, $num, $result = '')
+    public function printCheckBox($checkName, $num, $result = '')
     {
         if (empty($result)) {
             $result = 'data[pages][' . $GLOBALS['SOBE']->id . '][' . $checkName . ']';
@@ -847,8 +828,6 @@ class PermissionModuleController extends PermissionController
      */
     protected function initializeTree()
     {
-
-        DebuggerUtility::var_dump($this);
 
         /** @var \TYPO3\CMS\Backend\Tree\View\PageTreeView $tree */
         $tree = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Tree\View\PageTreeView::class);
@@ -875,5 +854,4 @@ class PermissionModuleController extends PermissionController
         $tree->getTree($this->id, $this->MOD_SETTINGS['depth'], '');
         return $tree;
     }
-
 }

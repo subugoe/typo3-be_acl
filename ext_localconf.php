@@ -1,20 +1,18 @@
 <?php
 if (!defined('TYPO3_MODE')) {
-    die ("Access denied.");
+    die('Access denied.');
 }
 \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addUserTSConfig('
     options.saveDocNew.tx_beacl_acl=1
 ');
 
+$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['calcPerms'][] = 'Subugoe\\BeAcl\\PermissionCalculator->calcPerms';
+$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['getPagePermsClause'][] = 'Subugoe\\BeAcl\\PermissionCalculator->getPagePermsClause';
 
-require_once(\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::extPath('be_acl') . 'res/class.tx_beacl_userauthgroup.php');
-$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['calcPerms'][] = 'tx_beacl_userAuthGroup->calcPerms';
-$TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['getPagePermsClause'][] = 'tx_beacl_userAuthGroup->getPagePermsClause';
-
-$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects']['TYPO3\\CMS\\BeUser\\Controller\\PermissionController'] = [
-    'className' => 'Subugoe\\BeAcl\\Xclass\PermissionModuleController',
+$GLOBALS['TYPO3_CONF_VARS']['SYS']['Objects'][\TYPO3\CMS\BeUser\Controller\PermissionController::class] = [
+    'className' => \Subugoe\BeAcl\Xclass\PermissionModuleController::class,
 ];
 
 if (TYPO3_MODE === 'BE') {
-    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = 'Subugoe\\BeAcl\\Hooks\\DatabaseOperations';
+    $GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['processDatamapClass'][] = \Subugoe\BeAcl\Hooks\DatabaseOperations::class;
 }

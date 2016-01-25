@@ -1,4 +1,7 @@
 <?php
+
+namespace Subugoe\BeAcl;
+
 /***************************************************************
  *  Copyright notice
  *
@@ -27,7 +30,7 @@ use TYPO3\CMS\Backend\Utility\BackendUtility;
 /**
  * Backend ACL - Functions re-calculating permissions
  */
-class tx_beacl_userAuthGroup
+class PermissionCalculator
 {
     /**
      * @var array
@@ -101,7 +104,6 @@ class tx_beacl_userAuthGroup
                 ) {
                     $out |= $result['permissions'];
                     $takeUserIntoAccount = 0;
-
                 } elseif ($result['type'] == 1
                     && $that->isMemberOfGroup($result['object_id'])
                     && !in_array($result['object_id'], $groupIdsAlreadyUsed)
@@ -127,11 +129,11 @@ class tx_beacl_userAuthGroup
      * If the user is not set at all (->user is not an array), then " 1=0" is returned (will cause no selection results at all)
      * The 95% use of this function is "->getPagePermsClause(1)" which will return WHERE clauses for *selecting* pages in backend listings - in other words will this check read permissions.
      *
-     * @param integer $params Permission mask to use, see function description
+     * @param int $params Permission mask to use, see function description
      * @param object $that BE User Object
      * @return string Part of where clause. Prefix " AND " to this.
      */
-    function getPagePermsClause($params, $that)
+    public function getPagePermsClause($params, $that)
     {
 
         // Load cache from BE User data
