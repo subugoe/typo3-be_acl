@@ -43,8 +43,11 @@ When installing the extension, you have the possibility to switch the current â€
 There is a new option for the extension in the extension manager called enableFilterSelector. If you enable this option, you will see a box where you can select the visible users/groups in the permission matrix to make this view easier to handle.
 The extension is for TYPO3 3.8 and up, because there are two hooks necessary which are only in the core in these versions and up. If you use an older version, you need to patch the core.
 The hooks used are the following:
+
+```php
 $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['calcPerms']
 $TYPO3_CONF_VARS['SC_OPTIONS']['t3lib/class.t3lib_userauthgroup.php']['getPagePermsClause']
+```
 
 ## Tips and tricks for large websites (approx. more than 1000 pages)
 The last version of be_acl features some improvements for large page trees which makes be_acl usable in these environments. It especially adds some session caching for the ACL computations.
